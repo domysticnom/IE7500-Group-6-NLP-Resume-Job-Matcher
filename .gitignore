@@ -1,0 +1,24 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+*.egg-info/
+.ipynb_checkpoints/
+
+# --- Secrets ---
+kaggle.json
+*.key
+
+# --- Large / regenerated artifacts: keep the folder skeleton only ---
+data/**
+!data/**/
+!data/**/.gitkeep
+models/**
+!models/**/
+!models/**/.gitkeep
+
+# --- OS / editor junk ---
+.DS_Store
+~$*.docx
