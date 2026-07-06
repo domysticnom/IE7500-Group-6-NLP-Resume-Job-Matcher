@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-from pathlib import Path
 
 import torch
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
@@ -24,15 +23,20 @@ class DistilBertScorer(Scorer):
     name = "distilbert"
 
     def __init__(self, model_dir=DEFAULT_MODEL_DIR):
-        model_dir = Path(model_dir)
-        if not model_dir.exists():
+        # `source` is either a local checkpoint folder or, for deployment, a
+        # Hugging Face Hub repo id (e.g. "user/resume-job-distilbert") that
+        # from_pretrained downloads on load.
+        source = str(model_dir)
+        try:
+            self.tokenizer = AutoTokenizer.from_pretrained(source)
+            self.model = AutoModelForSequenceClassification.from_pretrained(source)
+        except Exception as exc:
             raise FileNotFoundError(
-                f"DistilBERT checkpoint not found at '{model_dir}'. Download the "
-                "trained model folder (the trainer.save_model output) and place it "
-                "there, or set the MATCHER_DISTILBERT_DIR environment variable."
-            )
-        self.tokenizer = AutoTokenizer.from_pretrained(str(model_dir))
-        self.model = AutoModelForSequenceClassification.from_pretrained(str(model_dir))
+                f"Could not load DistilBERT from '{source}'. Provide a local "
+                "checkpoint at models/trained_transformer_model/, set "
+                "MATCHER_DISTILBERT_DIR to its path, or use a Hugging Face Hub "
+                f"repo id. ({type(exc).__name__}: {exc})"
+            ) from exc
         self.model.eval()
         # id -> label straight from the model config (authoritative).
         self.id2label = {int(k): v for k, v in self.model.config.id2label.items()}

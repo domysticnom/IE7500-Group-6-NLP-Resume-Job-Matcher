@@ -1,14 +1,22 @@
 # Résumé & Job Matching
 
-An explainable NLP system that scores how well a résumé fits a job posting and
-surfaces the matched vs missing skills behind the score. (Top-N job
-recommendations are planned — see `.planning` / ROADMAP.)
+An explainable NLP system that scores how well a résumé fits a job posting,
+surfaces the matched vs missing skills behind the score, and recommends the
+best-matching job postings for a résumé.
 
-The Streamlit demo lets you paste a résumé and a job posting, pick a scoring
-approach, and see a fit score (No Fit / Potential Fit / Good Fit) plus the
-matched and missing skills. Every approach implements one shared `Scorer`
-interface (`src/matcher/scoring/base.py`), so the app renders them
-interchangeably.
+**Live demo:** https://huggingface.co/spaces/domynom/resume-job-matcher
+
+The Streamlit demo has two views:
+
+- **Recommend jobs** — paste or pick a résumé and get a ranked list of matching
+  job postings (TF-IDF retrieval, optional DistilBERT rerank) with fit scores and
+  matched/missing skills.
+- **Compare one pair** — score a single résumé against a single job across every
+  available approach.
+
+Every approach implements one shared `Scorer` interface
+(`src/matcher/scoring/base.py`), so the app renders them interchangeably. Fit
+labels are No Fit / Potential Fit / Good Fit.
 
 ## Scoring approaches
 
