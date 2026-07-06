@@ -1,0 +1,9 @@
+# Requirements for the Hugging Face Space (CPU inference).
+# The CPU torch wheel keeps the image small and fits the free Space tier.
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.12.1
+transformers==5.9.0
+streamlit==1.57.0
+scikit-learn==1.8.0
+datasets==4.8.5
+pandas==2.2.3

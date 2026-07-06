@@ -3,6 +3,8 @@
 An explainable NLP system that scores how well a résumé fits a job posting and
 returns top-N recommendations.
 
+**Live demo:** https://huggingface.co/spaces/domynom/resume-job-matcher
+
 Two fit-scoring approaches share one interface and one evaluation harness:
 1. **TF-IDF + cosine** (baseline)
 2. **Fine-tuned DistilBERT** (3-class sequence-pair classifier)
