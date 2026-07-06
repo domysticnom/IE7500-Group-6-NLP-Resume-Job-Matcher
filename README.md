@@ -1,13 +1,34 @@
 # Résumé & Job Matching
 
-An explainable NLP system that scores how well a résumé fits a job posting and
-returns top-N recommendations.
+An explainable NLP system that scores how well a résumé fits a job posting,
+surfaces the matched vs missing skills behind the score, and recommends the
+best-matching job postings for a résumé.
 
 **Live demo:** https://huggingface.co/spaces/domynom/resume-job-matcher
 
-Two fit-scoring approaches share one interface and one evaluation harness:
-1. **TF-IDF + cosine** (baseline)
-2. **Fine-tuned DistilBERT** (3-class sequence-pair classifier)
+The Streamlit demo has two views:
+
+- **Recommend jobs** — paste or pick a résumé and get a ranked list of matching
+  job postings (TF-IDF retrieval, optional DistilBERT rerank) with fit scores and
+  matched/missing skills.
+- **Compare one pair** — score a single résumé against a single job across every
+  available approach.
+
+Every approach implements one shared `Scorer` interface
+(`src/matcher/scoring/base.py`), so the app renders them interchangeably. Fit
+labels are No Fit / Potential Fit / Good Fit.
+
+## Scoring approaches
+
+| Approach | What it is | Needs |
+|----------|-----------|-------|
+| **Keyword skills** | Skill overlap between résumé and job (extract + intersect) | nothing — works out of the box |
+| **TF-IDF + Logistic Regression** | scikit-learn pipeline over the résumé+job pair | `models/logistic_regression_baseline.pkl` (regenerate below) |
+| **Fine-tuned DistilBERT** | 3-class sequence-pair classifier | the trained checkpoint (below) + `torch` |
+| **Dummy** | deterministic placeholder | nothing (dev fallback) |
+
+Whichever models are present light up automatically in the app's dropdown; the
+Keyword and Dummy approaches always work, so the demo is never blocked on a model.
 
 ## Setup
 
@@ -15,9 +36,10 @@ Two fit-scoring approaches share one interface and one evaluation harness:
 python -m venv .venv
 source .venv/Scripts/activate          # Windows Git Bash  (macOS/Linux: source .venv/bin/activate)
 
-# 1. PyTorch CUDA wheel first (see https://pytorch.org):
-#    e.g. pip install torch --index-url https://download.pytorch.org/whl/cu124
-python -c "import torch; print(torch.cuda.is_available())"   # must print True
+# 1. PyTorch. The CPU wheel is enough to RUN the demo (single-pair inference is fast):
+pip install torch --index-url https://download.pytorch.org/whl/cpu
+#    For GPU training, install the CUDA wheel from https://pytorch.org instead
+#    and verify: python -c "import torch; print(torch.cuda.is_available())"
 
 # 2. Everything else:
 pip install -r requirements.txt
@@ -26,17 +48,27 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
-## Data
+## Models
+
+Model weights are git-ignored — each teammate regenerates or supplies them locally.
 
 ```bash
-python scripts/download_data.py        # single reproducible entry point
+# TF-IDF + Logistic Regression: downloads the public fit dataset from Hugging Face
+# and trains in seconds -> writes models/logistic_regression_baseline.pkl
+python scripts/train_tfidf_fit.py
 ```
-Datasets are gitignored (regenerated on demand). Licenses in `docs/METHODS.md`.
+
+```
+# Fine-tuned DistilBERT: place the trained checkpoint (config.json,
+# model.safetensors, tokenizer files) at:
+models/trained_transformer_model/
+# or point MATCHER_DISTILBERT_DIR at wherever it lives.
+```
 
 ## Run
 
 ```bash
-streamlit run app/streamlit_app.py     # interactive demo
+streamlit run app/streamlit_app.py     # interactive demo at http://localhost:8501
 python -m pytest tests/                # smoke tests
 ```
 
@@ -44,12 +76,14 @@ python -m pytest tests/                # smoke tests
 
 ```
 src/matcher/
-  data/         load + clean the datasets
-  scoring/      base.py = the Scorer contract; tfidf/distilbert implement it
-  evaluation/   frozen splits + shared metrics
-app/            Streamlit demo
-scripts/        download_data.py, train_distilbert.py
-docs/           METHODS.md, proposal/, figures/
+  scoring/      base.py = the Scorer contract; keyword_overlap, skill_extraction,
+                tfidf, distilbert implement/support it
+  data/         dataset loading + cleaning helpers
+  evaluation/   shared metrics + frozen splits
+app/            streamlit_app.py (demo) + scorers.py (Scorer registry)
+scripts/        train_tfidf_fit.py, run_*_baseline.py, prepare_data.py
+docs/           METHODS.md, baseline results, proposal/, figures/
+tests/          smoke tests
 ```
 
 ## Team & branches

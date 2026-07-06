@@ -76,16 +76,6 @@ recommend_tab, compare_tab = st.tabs(["Recommend jobs", "Compare one pair"])
 with recommend_tab:
     st.caption("Paste or pick a résumé and get the best-matching job postings, ranked by fit.")
 
-    controls, _ = st.columns([3, 1])
-    with st.sidebar:
-        st.header("Recommendation settings")
-        top_n = st.slider("How many jobs to show", 3, 25, 10)
-        use_rerank = st.checkbox(
-            "Rerank with DistilBERT", value=False,
-            help="TF-IDF finds candidates instantly; DistilBERT re-scores the top ones "
-                 "for accuracy (slower, needs the checkpoint).",
-        )
-
     samples = get_sample_resumes()
     options = ["— paste your own —"] + [f"Sample {i + 1}: {s[:50]}…" for i, s in enumerate(samples)]
     if "resume_text" not in st.session_state:
@@ -99,6 +89,15 @@ with recommend_tab:
     resume = st.text_area(
         "Résumé text", key="resume_text", height=240, placeholder="Paste a résumé…"
     )
+
+    settings_col, _ = st.columns([2, 2])
+    with settings_col:
+        top_n = st.slider("How many jobs to show", 3, 25, 10)
+        use_rerank = st.checkbox(
+            "Rerank with DistilBERT", value=False,
+            help="TF-IDF finds candidates instantly; DistilBERT re-scores the top ones "
+                 "for accuracy (slower, needs the checkpoint).",
+        )
 
     if st.button("Recommend jobs", type="primary"):
         if not resume.strip():
