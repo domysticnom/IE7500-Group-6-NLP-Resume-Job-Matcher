@@ -42,8 +42,29 @@ def get_sample_resumes():
     return load_sample_resumes()
 
 
-def _skills_line(label: str, skills: list[str]) -> str:
-    return f"**{label}:** " + (", ".join(skills) if skills else "—")
+VERDICT_COLOR = {"Good Fit": "green", "Potential Fit": "orange", "No Fit": "red"}
+
+
+def _clean_title(text: str, width: int = 60) -> str:
+    """A tidy one-line heading from a posting's text (collapsed, first clause)."""
+    t = " ".join(text.split()).split(". ")[0]
+    return t if len(t) <= width else t[:width].rsplit(" ", 1)[0] + "…"
+
+
+def _preview(text: str, n: int = 240) -> str:
+    """A short, single-paragraph preview of the posting."""
+    t = " ".join(text.split())
+    return t if len(t) <= n else t[:n].rsplit(" ", 1)[0] + "…"
+
+
+def _badges(skills: list[str], color: str, limit: int = 12) -> str:
+    """Render skills as colored inline badges, capping the number shown."""
+    if not skills:
+        return "_none_"
+    shown = skills[:limit]
+    md = " ".join(f":{color}-background[{s}]" for s in shown)
+    extra = len(skills) - len(shown)
+    return md + (f" _+{extra} more_" if extra else "")
 
 
 # --- header --------------------------------------------------------------------
@@ -94,18 +115,26 @@ with recommend_tab:
                     resume, top_n=top_n, reranker=reranker, pool_k=max(20, top_n)
                 )
 
-            mode = "TF-IDF → DistilBERT rerank" if reranker else "TF-IDF ranking"
-            st.caption(f"Top {len(recs)} of the corpus · {mode}")
+            mode = "TF-IDF retrieve + DistilBERT rerank" if reranker else "TF-IDF ranking"
+            st.caption(f"Top {len(recs)} matches - {mode}")
             for rec in recs:
                 with st.container(border=True):
-                    left, right = st.columns([1, 5])
-                    left.metric(f"#{rec.rank}", f"{rec.score * 100:.0f}%")
-                    right.markdown(f"**{rec.posting.title}**")
-                    if rec.label:
-                        right.caption(f"verdict: {rec.label}  ·  retrieval: {rec.retrieve_score:.2f}")
-                    right.markdown(_skills_line("Matched", rec.matched_skills))
-                    right.markdown(_skills_line("Missing", rec.missing_skills))
-                    with right.expander("Full posting"):
+                    head, meta = st.columns([7, 2])
+                    with head:
+                        st.markdown(f"##### {rec.rank}. {_clean_title(rec.posting.text)}")
+                        st.caption(_preview(rec.posting.text))
+                    with meta:
+                        if rec.label:
+                            st.markdown(
+                                f":{VERDICT_COLOR.get(rec.label, 'gray')}-background[{rec.label}]"
+                            )
+                        st.progress(
+                            min(1.0, max(0.0, rec.score)),
+                            text=f"match {rec.score * 100:.0f}%",
+                        )
+                    st.markdown("**Matched skills** &nbsp; " + _badges(rec.matched_skills, "green"))
+                    st.markdown("**Missing skills** &nbsp; " + _badges(rec.missing_skills, "red"))
+                    with st.expander("View full posting"):
                         st.write(rec.posting.text)
 
 
