@@ -22,13 +22,24 @@ labels are No Fit / Potential Fit / Good Fit.
 
 | Approach | What it is | Needs |
 |----------|-----------|-------|
-| **Keyword skills** | Skill overlap between résumé and job (extract + intersect) | nothing — works out of the box |
+| **Keyword skills** | Skill overlap between résumé and job (extract + intersect) | pretrained NER models auto-download on first use; falls back to a keyword list offline |
 | **TF-IDF + Logistic Regression** | scikit-learn pipeline over the résumé+job pair | `models/logistic_regression_baseline.pkl` (regenerate below) |
 | **Fine-tuned DistilBERT** | 3-class sequence-pair classifier | the trained checkpoint (below) + `torch` |
 | **Dummy** | deterministic placeholder | nothing (dev fallback) |
 
 Whichever models are present light up automatically in the app's dropdown; the
 Keyword and Dummy approaches always work, so the demo is never blocked on a model.
+
+### Skill extraction (matched / missing skills)
+
+The matched/missing-skill explainability is driven by two pretrained NER models
+from the jjzha / SkillSpan line — `jjzha/jobbert_knowledge_extraction` (hard
+skills/tools) and `jjzha/jobbert_skill_extraction` (applied/soft skills) — whose
+spans are unioned. They download from Hugging Face on first use and are cached.
+If they can't be loaded (offline, or `MATCHER_DISABLE_NER=1`), extraction falls
+back to a fixed keyword list so the app still runs. Tunable via
+`MATCHER_KNOWLEDGE_NER_MODEL`, `MATCHER_SKILL_NER_MODEL`, and
+`MATCHER_SKILL_NER_MIN_SCORE`.
 
 ## Setup
 
