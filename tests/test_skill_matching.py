@@ -28,6 +28,19 @@ def test_extract_skills_explicit_list():
     assert skills == ["kafka", "kubernetes", "python"]
 
 
+def test_extraction_is_vocab_restricted(monkeypatch):
+    # Output must stay within the curated gazetteer — no "degree"/"business"/
+    # "experience" noise. Deterministic (NER disabled -> keyword matching).
+    monkeypatch.setenv("MATCHER_DISABLE_NER", "1")
+    from matcher.scoring.skill_extraction import _KEYWORD_SET
+
+    jd = "Bachelor's degree required; strong business experience. Must know SQL and Python."
+    skills = extract_skills(jd)
+    assert all(s in _KEYWORD_SET for s in skills), skills
+    assert "degree" not in skills and "experience" not in skills and "business" not in skills
+    assert "sql" in skills and "python" in skills
+
+
 def test_keyword_overlap_score():
     resume_skills = ["python", "sql", "excel"]
     job_skills = ["python", "sql", "tableau"]

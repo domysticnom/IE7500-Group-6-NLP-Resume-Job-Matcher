@@ -1,0 +1,218 @@
+# Curated skill vocabulary (gazetteer) for the résumé ↔ job matcher.
+#
+# One canonical skill per line, lowercase. Lines starting with '#' and blank
+# lines are ignored. Extraction reports ONLY skills in this list, so it stays
+# clean (no "degree", "experience", "bachelor's" noise). Grow it deliberately —
+# every entry here is a term you're happy to show a user as a matched/missing
+# skill. Ambiguous generic words (business, degree, application, access) are
+# intentionally excluded; use specific forms (e.g. "microsoft access").
+
+# --- Programming languages ---
+python
+java
+javascript
+typescript
+c++
+c#
+c
+r
+scala
+go
+golang
+ruby
+php
+swift
+kotlin
+rust
+sql
+bash
+shell scripting
+powershell
+matlab
+sas
+perl
+objective-c
+dart
+groovy
+vba
+
+# --- Data analysis & science ---
+data analysis
+data analytics
+data science
+data engineering
+data modeling
+data mining
+data warehousing
+data visualization
+statistics
+statistical analysis
+predictive modeling
+machine learning
+deep learning
+nlp
+natural language processing
+computer vision
+classification
+regression
+clustering
+time series
+forecasting
+a/b testing
+feature engineering
+experimental design
+etl
+elt
+mlops
+reinforcement learning
+
+# --- ML / data libraries & frameworks ---
+pandas
+numpy
+scipy
+scikit-learn
+sklearn
+tensorflow
+keras
+pytorch
+xgboost
+lightgbm
+hugging face
+transformers
+spacy
+nltk
+opencv
+matplotlib
+seaborn
+plotly
+
+# --- Databases ---
+mysql
+postgresql
+postgres
+sql server
+oracle
+mongodb
+cassandra
+redis
+dynamodb
+snowflake
+bigquery
+redshift
+elasticsearch
+nosql
+microsoft access
+database design
+
+# --- Cloud & DevOps ---
+aws
+azure
+gcp
+google cloud
+amazon web services
+ec2
+s3
+lambda
+sagemaker
+databricks
+kubernetes
+docker
+terraform
+ansible
+jenkins
+ci/cd
+devops
+cloudformation
+serverless
+
+# --- Big data & pipelines ---
+spark
+pyspark
+hadoop
+hive
+kafka
+airflow
+flink
+dbt
+data pipelines
+
+# --- BI & visualization tools ---
+excel
+power bi
+tableau
+looker
+qlik
+google analytics
+dashboard
+reporting
+
+# --- Software / web ---
+html
+css
+react
+angular
+vue
+node.js
+django
+flask
+fastapi
+spring
+.net
+rest api
+graphql
+microservices
+api development
+
+# --- Tools & platforms ---
+git
+github
+gitlab
+jira
+confluence
+linux
+unix
+windows server
+snowflake
+salesforce
+sap
+workday
+
+# --- Practices & methodologies ---
+agile
+scrum
+kanban
+tdd
+unit testing
+object-oriented programming
+functional programming
+
+# --- Analytics & domain ---
+financial modeling
+accounting
+budgeting
+financial analysis
+business intelligence
+data governance
+requirements gathering
+business analysis
+product management
+project management
+
+# --- Business & soft skills ---
+communication
+leadership
+teamwork
+problem solving
+critical thinking
+time management
+customer service
+stakeholder management
+presentation
+collaboration
+negotiation
+sales
+marketing
+human resources
+recruitment
+training
+mentoring
