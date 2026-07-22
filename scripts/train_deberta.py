@@ -94,12 +94,12 @@ def main(): # Prevents the full training process from starting unintentionally
 
     print("The class weights are:", class_weights) # Prints the class weights for inspection
 
-    model_checkpoint = "distilbert-base-uncased" # Using the pre-trained DistilBERT model
+    model_checkpoint = "microsoft/deberta-v3-small" # Using the pre-trained DeBERTa v3 small model
 
-    tokenizer = AutoTokenizer.from_pretrained(model_checkpoint) # Loads the correct tokenizer for DistilBERT
+    tokenizer = AutoTokenizer.from_pretrained(model_checkpoint) # Loads the correct tokenizer for DeBERTa
 
     def encode_and_tokenize_function(example): # Defines the function to tokenize one resume-job pair
-        tokenized = tokenizer( # Uses the DistilBERT tokenizer to convert text into inputs for the model
+        tokenized = tokenizer( # Uses the DeBERTa tokenizer to convert text into inputs for the model
             example["resume_text"], # Resume text input
             example["job_description_text"], # Job description text input
             truncation=True, # Limits the text to maximum text length by cutting excess words
@@ -135,8 +135,11 @@ def main(): # Prevents the full training process from starting unintentionally
         model_checkpoint, # Uses the model name stored earlier
         num_labels=num_labels, # Gives the model number of output classes
         id2label=id2label, # Model can now convert numeric predictions into label names 
-        label2id=label2id # Model can now also convert label names into numeric predictions
+        label2id=label2id, # Model can now also convert label names into numeric predictions
+        dtype=torch.float32,  # Loads FP32 weights for mixed-precision training
     )
+
+    print("Model parameter dtype:", next(model.parameters()).dtype)
 
     model.to(device) # Model uses GPU if available, otherwise uses CPU
 
@@ -171,24 +174,26 @@ def main(): # Prevents the full training process from starting unintentionally
         }
 
     training_args = TrainingArguments( 
-        output_dir="./outputs/distilbert/checkpoints", # Folder to save the model checkpoints and training outputs
-        eval_strategy="epoch", # Evaluation is run at the end of every epoch
-        save_strategy="epoch", # Model checkpoint is saved at the end of every epoch
-        learning_rate=1e-5, # Controls how quickly model updates its weights during training
-        per_device_train_batch_size=8, # Number of training examples that are processed at once on a device
-        per_device_eval_batch_size=8, # Number of evaluation examples that are processed at once on a device
-        num_train_epochs=8, # Number of full passes through the training dataset
-        weight_decay=0.01, # Regularization is added to reduce overfitting
-        warmup_ratio=0.1, # Learning rate gradually increased during the first 10% of training
-        logging_steps=50, # Training logs printed every 50 steps
-        load_best_model_at_end=True, # The best checkpoint reloaded after training
-        metric_for_best_model="eval_loss", # Best model chosen based on validation loss
-        greater_is_better=False, # Specifies lower validation loss is better
-        report_to="none", # Ensures weights and biases are not sent to external-tracking tools
-        fp16=torch.cuda.is_available(), # Uses 16-bit numbers if CUDA GPU is available during training, for faster training
-        seed=seed,  # Controls training randomness
-        data_seed=seed,  # Controls data sampling randomness
-    )
+        output_dir = "./outputs/deberta/checkpoints", # Folder to save the model checkpoints and training outputs
+        eval_strategy = "epoch", # Evaluation is run at the end of every epoch
+        save_strategy = "epoch", # Model checkpoint is saved at the end of every epoch
+        learning_rate = 1e-5, # Controls how quickly model updates its weights during training
+        per_device_train_batch_size = 4, # Number of training examples that are processed at once on a device
+        per_device_eval_batch_size = 4, # Number of evaluation examples that are processed at once on a device
+        gradient_accumulation_steps = 2,  # Simulates a larger training batch
+        num_train_epochs = 8, # Number of full passes through the training dataset
+        weight_decay = 0.01, # Regularization is added to reduce overfitting
+        warmup_ratio = 0.1, # Learning rate gradually increased during the first 10% of training
+        logging_steps = 50, # Training logs printed every 50 steps
+        load_best_model_at_end = True, # The best checkpoint reloaded after training
+        metric_for_best_model = "eval_loss", # Best model chosen based on validation loss
+        greater_is_better = False, # Specifies lower validation loss is better
+        report_to = "none", # Ensures weights and biases are not sent to external-tracking tools
+        fp16 = False,
+        bf16 = torch.cuda.is_available(), # Uses 16-bit numbers if CUDA GPU is available during training, for faster training
+        seed = seed,  # Controls training randomness
+        data_seed = seed,  # Controls data sampling randomness
+        )
 
     # Weighted Trainer class
 
@@ -212,7 +217,7 @@ def main(): # Prevents the full training process from starting unintentionally
     data_collator = DataCollatorWithPadding(tokenizer=tokenizer) # Creates the helper which pads each batch to the same length
 
     trainer = WeightedLossTrainer( # Creates the custom trainer that uses weighted loss 
-        model=model, # The DistilBERT classification model is being trained
+        model=model, # The DeBERTa classification model is being trained
         args=training_args, # The training settings are applied
         train_dataset=train_tokenized, # Teaches the model using tokenized training data
         eval_dataset=valid_tokenized, # Performance is checked on the validation data using tokenized validation data
@@ -261,7 +266,7 @@ def main(): # Prevents the full training process from starting unintentionally
         columns=[f"Predicted {label}" for label in label_names] # Column names with predicted classes
     )
 
-    results_dir = "outputs/distilbert"
+    results_dir = "outputs/deberta"
     os.makedirs(results_dir, exist_ok=True)
 
     with open(os.path.join(results_dir, "test_metrics.json"),
@@ -286,7 +291,7 @@ def main(): # Prevents the full training process from starting unintentionally
         )
     )
 
-    model_output_dir = "models/trained_transformer_model"
+    model_output_dir = "models/trained_deberta_model"
 
     os.makedirs(model_output_dir,
         exist_ok=True,)
